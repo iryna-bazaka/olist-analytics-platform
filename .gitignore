@@ -1,0 +1,22 @@
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.DS_Store
+
+# Raw data is downloaded separately and is intentionally not committed.
+data/raw/*.csv
+
+# Local warehouse and generated reports.
+data/warehouse/*.sqlite
+data/warehouse/*.db
+reports/*.png
+
+# Local logs and editor state.
+*.log
+.vscode/
+.idea/
+
+# SQLite temporary files
+data/warehouse/.sqlite-*
+data/warehouse/.*.sqlite.*

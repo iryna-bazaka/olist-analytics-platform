@@ -1,0 +1,42 @@
+-- Power BI measures for the gold star schema.
+-- Assumes relationships from fct_orders/fct_order_items to the dimensions described in model-definition.md.
+
+Merchandise Revenue =
+SUM ( fct_order_items[item_price] )
+
+Freight Revenue =
+SUM ( fct_order_items[freight_value] )
+
+Order Total Value =
+[Merchandise Revenue] + [Freight Revenue]
+
+Orders =
+DISTINCTCOUNT ( fct_orders[order_id] )
+
+Customers =
+DISTINCTCOUNT ( fct_orders[customer_unique_id] )
+
+Average Order Value =
+DIVIDE ( [Merchandise Revenue], [Orders] )
+
+Average Review Score =
+AVERAGEX (
+    FILTER ( fct_orders, NOT ISBLANK ( fct_orders[average_review_score] ) ),
+    fct_orders[average_review_score]
+)
+
+On-Time Delivery Rate =
+AVERAGEX (
+    FILTER (
+        fct_orders,
+        fct_orders[order_status] = "delivered"
+            && NOT ISBLANK ( fct_orders[on_time_delivery_flag] )
+    ),
+    fct_orders[on_time_delivery_flag]
+)
+
+Late Delivery Orders =
+CALCULATE (
+    [Orders],
+    fct_orders[on_time_delivery_flag] = 0
+)

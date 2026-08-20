@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: olist_raw
+    description: Raw Olist CSV extracts landed in a Databricks bronze schema.
+    schema: bronze_olist
+    tables:
+      - name: orders
+        description: One row per Olist order.
+      - name: order_items
+        description: One row per product line within an order.
+      - name: order_payments
+        description: One row per payment method or installment record for an order.
+      - name: order_reviews
+        description: Review records associated with an order.
+      - name: customers
+        description: Order-specific customer records and customer location.
+      - name: products
+        description: Product attributes and Portuguese category names.
+      - name: sellers
+        description: Seller identifiers and seller location.
+      - name: geolocation
+        description: Brazilian ZIP-prefix latitude and longitude observations.
+      - name: category_translation
+        description: Portuguese-to-English product category mapping.

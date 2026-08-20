@@ -1,0 +1,26 @@
+name: olist_analytics
+version: '1.0.0'
+config-version: 2
+
+profile: olist_analytics
+
+model-paths: ["models"]
+test-paths: ["tests/dbt"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+snapshot-paths: ["snapshots"]
+
+models:
+  olist_analytics:
+    +persist_docs:
+      relation: true
+      columns: true
+    staging:
+      +materialized: view
+      +schema: silver
+    marts:
+      +materialized: table
+      +schema: gold
+    semantic:
+      +materialized: view
+      +schema: semantic

@@ -1,0 +1,55 @@
+version: 1
+
+semantic_models:
+  - name: order_metrics
+    model: ref('semantic_order_metrics')
+    grain: one row per order_id
+    dimensions:
+      - name: purchase_month
+        type: time
+      - name: order_status
+        type: categorical
+      - name: customer_state
+        type: categorical
+      - name: customer_unique_id
+        type: categorical
+    measures:
+      - name: merchandise_revenue
+        expression: sum(merchandise_revenue)
+        description: Sum of item prices, excluding freight.
+      - name: freight_revenue
+        expression: sum(freight_revenue)
+        description: Sum of freight values.
+      - name: orders
+        expression: count_distinct(order_id)
+        description: Distinct order count at order grain.
+      - name: customers
+        expression: count_distinct(customer_unique_id)
+        description: Distinct customer count at customer_unique_id grain.
+      - name: average_order_value
+        expression: merchandise_revenue / nullif(orders, 0)
+        description: Merchandise revenue divided by distinct orders.
+      - name: on_time_delivery_rate
+        expression: avg(on_time_delivery_flag)
+        description: Delivered orders delivered on or before the estimated date.
+      - name: average_review_score
+        expression: avg(average_review_score)
+        description: Average review score for orders with an available review.
+
+  - name: product_metrics
+    model: ref('semantic_product_metrics')
+    grain: one row per order_id and order_item_id
+    dimensions:
+      - name: purchase_month
+        type: time
+      - name: product_category_name_english
+        type: categorical
+      - name: seller_state
+        type: categorical
+    measures:
+      - name: item_merchandise_revenue
+        expression: sum(item_price)
+        description: Merchandise revenue at order-item grain.
+      - name: item_count
+        expression: count(order_item_id)
+        description: Count of order items.

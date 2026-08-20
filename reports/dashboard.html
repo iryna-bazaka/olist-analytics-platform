@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Olist Analytics Platform</title>
+<style>
+:root { --ink:#14212b; --muted:#687782; --line:#d8e1e7; --surface:#f6f8fa; --accent:#1d6f8c; --accent2:#e28d4f; }
+* { box-sizing:border-box; } body { margin:0; font-family:Inter,Arial,sans-serif; color:var(--ink); background:white; }
+.wrap { max-width:1180px; margin:0 auto; padding:40px 24px 64px; }
+.eyebrow { color:var(--accent); font-weight:700; letter-spacing:.12em; text-transform:uppercase; font-size:12px; }
+h1 { font-size:38px; line-height:1.08; margin:10px 0 10px; } h2 { font-size:20px; margin:34px 0 12px; }
+.sub { color:var(--muted); max-width:760px; line-height:1.55; } .cards { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; margin:28px 0; }
+.card { background:var(--surface); border:1px solid var(--line); padding:18px; min-height:96px; } .label { color:var(--muted); font-size:12px; } .value { font-size:22px; font-weight:750; margin-top:9px; }
+.grid { display:grid; grid-template-columns:1.25fr 1fr; gap:22px; } .panel { border-top:3px solid var(--accent); padding-top:12px; }
+.bar-row { display:grid; grid-template-columns:190px 1fr 100px; gap:10px; align-items:center; margin:10px 0; font-size:13px; } .bar-label { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .bar-track { height:10px; background:#e9eff2; } .bar-fill { height:100%; background:var(--accent2); } .bar-value { text-align:right; color:var(--muted); }
+table { width:100%; border-collapse:collapse; font-size:13px; } th,td { padding:10px 8px; border-bottom:1px solid var(--line); text-align:left; } th { color:var(--muted); font-weight:600; }
+.footer { margin-top:40px; color:var(--muted); font-size:12px; }
+@media(max-width:900px) { .cards { grid-template-columns:repeat(3,1fr); } .grid { grid-template-columns:1fr; } }
+@media(max-width:560px) { .cards { grid-template-columns:repeat(2,1fr); } .bar-row { grid-template-columns:120px 1fr 80px; } }
+</style></head><body><main class="wrap">
+<div class="eyebrow">Olist Analytics Platform</div><h1>Commerce performance, fulfillment reliability, and customer experience</h1>
+<p class="sub">A semantic, dbt-style analytics layer built for Databricks and Power BI, with a local preview adapter for reproducible review.</p>
+<section class="cards"><div class="card"><div class="label">Merchandise revenue</div><div class="value">R$ 13,591,644</div></div><div class="card"><div class="label">Orders</div><div class="value">99,441</div></div><div class="card"><div class="label">Customers</div><div class="value">96,096</div></div><div class="card"><div class="label">Average order value</div><div class="value">R$ 137</div></div><div class="card"><div class="label">On-time delivery</div><div class="value">91.9%</div></div><div class="card"><div class="label">Average review</div><div class="value">4.09 / 5</div></div></section>
+<section class="grid"><div class="panel"><h2>Top categories by merchandise revenue</h2><div class="bar-row"><div class="bar-label">health_beauty</div><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><div class="bar-value">R$ 1,258,681</div></div>
+<div class="bar-row"><div class="bar-label">watches_gifts</div><div class="bar-track"><div class="bar-fill" style="width:96%"></div></div><div class="bar-value">R$ 1,205,006</div></div>
+<div class="bar-row"><div class="bar-label">bed_bath_table</div><div class="bar-track"><div class="bar-fill" style="width:82%"></div></div><div class="bar-value">R$ 1,036,989</div></div>
+<div class="bar-row"><div class="bar-label">sports_leisure</div><div class="bar-track"><div class="bar-fill" style="width:78%"></div></div><div class="bar-value">R$ 988,049</div></div>
+<div class="bar-row"><div class="bar-label">computers_accessories</div><div class="bar-track"><div class="bar-fill" style="width:72%"></div></div><div class="bar-value">R$ 911,954</div></div>
+<div class="bar-row"><div class="bar-label">furniture_decor</div><div class="bar-track"><div class="bar-fill" style="width:58%"></div></div><div class="bar-value">R$ 729,762</div></div>
+<div class="bar-row"><div class="bar-label">cool_stuff</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="bar-value">R$ 635,291</div></div>
+<div class="bar-row"><div class="bar-label">housewares</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="bar-value">R$ 632,249</div></div>
+<div class="bar-row"><div class="bar-label">auto</div><div class="bar-track"><div class="bar-fill" style="width:47%"></div></div><div class="bar-value">R$ 592,720</div></div>
+<div class="bar-row"><div class="bar-label">garden_tools</div><div class="bar-track"><div class="bar-fill" style="width:39%"></div></div><div class="bar-value">R$ 485,256</div></div></div>
+<div class="panel"><h2>Delivery outcome</h2><table><thead><tr><th>Delivery bucket</th><th>Orders</th></tr></thead><tbody><tr><td>1-14 days early</td><td>57,588</td></tr><tr><td>15+ days early</td><td>29,594</td></tr><tr><td>1-7 days late</td><td>4,481</td></tr><tr><td>8+ days late</td><td>3,345</td></tr><tr><td>On estimated date</td><td>1,462</td></tr></tbody></table></div></section>
+<section class="panel"><h2>Customer-state performance</h2><table><thead><tr><th>State</th><th>Revenue</th><th>Orders</th><th>On-time</th></tr></thead><tbody><tr><td>SP</td><td>R$ 5,202,955</td><td>41,746</td><td>94.1%</td></tr><tr><td>RJ</td><td>R$ 1,824,093</td><td>12,852</td><td>86.5%</td></tr><tr><td>MG</td><td>R$ 1,585,308</td><td>11,635</td><td>94.4%</td></tr><tr><td>RS</td><td>R$ 750,304</td><td>5,466</td><td>92.8%</td></tr><tr><td>PR</td><td>R$ 683,084</td><td>5,045</td><td>95.0%</td></tr><tr><td>SC</td><td>R$ 520,553</td><td>3,637</td><td>90.2%</td></tr><tr><td>BA</td><td>R$ 511,350</td><td>3,380</td><td>86.0%</td></tr><tr><td>DF</td><td>R$ 302,604</td><td>2,140</td><td>92.9%</td></tr></tbody></table></section>
+<div class="footer">Source: Olist Brazilian E-Commerce Public Dataset. Metrics are defined in models/semantic/metrics.yml. Local preview generated from the attached CSV files.</div>
+</main></body></html>

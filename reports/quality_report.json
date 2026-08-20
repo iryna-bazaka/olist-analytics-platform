@@ -1,0 +1,133 @@
+{
+  "passed": true,
+  "check_count": 14,
+  "failed_count": 0,
+  "warning_count": 0,
+  "checks": [
+    {
+      "name": "unique_fct_orders_order_id",
+      "passed": true,
+      "severity": "error",
+      "details": "No null or duplicate keys",
+      "observed": {
+        "rows": 1,
+        "non_null": 1,
+        "distinct_keys": 1
+      }
+    },
+    {
+      "name": "unique_fct_order_items_order_id || '|' || order_item_id",
+      "passed": true,
+      "severity": "error",
+      "details": "No null or duplicate keys",
+      "observed": {
+        "rows": 2,
+        "non_null": 2,
+        "distinct_keys": 2
+      }
+    },
+    {
+      "name": "unique_dim_customers_customer_id",
+      "passed": true,
+      "severity": "error",
+      "details": "No null or duplicate keys",
+      "observed": {
+        "rows": 1,
+        "non_null": 1,
+        "distinct_keys": 1
+      }
+    },
+    {
+      "name": "unique_dim_products_product_id",
+      "passed": true,
+      "severity": "error",
+      "details": "No null or duplicate keys",
+      "observed": {
+        "rows": 2,
+        "non_null": 2,
+        "distinct_keys": 2
+      }
+    },
+    {
+      "name": "unique_dim_sellers_seller_id",
+      "passed": true,
+      "severity": "error",
+      "details": "No null or duplicate keys",
+      "observed": {
+        "rows": 2,
+        "non_null": 2,
+        "distinct_keys": 2
+      }
+    },
+    {
+      "name": "relationship_fct_order_items_fct_orders",
+      "passed": true,
+      "severity": "error",
+      "details": "No orphan foreign keys",
+      "observed": 0
+    },
+    {
+      "name": "relationship_fct_order_items_dim_products",
+      "passed": true,
+      "severity": "error",
+      "details": "No orphan foreign keys",
+      "observed": 0
+    },
+    {
+      "name": "relationship_fct_order_items_dim_sellers",
+      "passed": true,
+      "severity": "error",
+      "details": "No orphan foreign keys",
+      "observed": 0
+    },
+    {
+      "name": "relationship_fct_orders_dim_customers",
+      "passed": true,
+      "severity": "error",
+      "details": "No orphan foreign keys",
+      "observed": 0
+    },
+    {
+      "name": "accepted_order_statuses",
+      "passed": true,
+      "severity": "error",
+      "details": "All statuses are in the documented source domain",
+      "observed": []
+    },
+    {
+      "name": "non_negative_item_values",
+      "passed": true,
+      "severity": "error",
+      "details": "Price and freight values are non-negative",
+      "observed": {
+        "negative_price": 0,
+        "negative_freight": 0
+      }
+    },
+    {
+      "name": "review_score_range",
+      "passed": true,
+      "severity": "error",
+      "details": "Review scores are between 1 and 5",
+      "observed": 0
+    },
+    {
+      "name": "timestamp_ordering",
+      "passed": true,
+      "severity": "warning",
+      "details": "Source fulfillment timestamp anomalies are surfaced for review",
+      "observed": {
+        "approved_before_purchase": 0,
+        "carrier_before_purchase": 0,
+        "customer_before_carrier": 0
+      }
+    },
+    {
+      "name": "revenue_reconciliation",
+      "passed": true,
+      "severity": "error",
+      "details": "Item and order merchandise revenue reconcile",
+      "observed": 0.0
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+version: 2
+
+models:
+  - name: fct_orders
+    description: One row per order, with order-level commercial, payment, review, and fulfillment metrics.
+    columns:
+      - name: order_id
+        tests: [not_null, unique]
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+      - name: order_status
+        tests:
+          - accepted_values:
+              values: ['delivered', 'invoiced', 'shipped', 'processing', 'unavailable', 'canceled', 'created', 'approved']
+      - name: merchandise_revenue
+        tests: [not_null]
+
+  - name: fct_order_items
+    description: One row per order item, joined to order, product, and seller dimensions.
+    columns:
+      - name: order_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('fct_orders')
+              field: order_id
+      - name: order_item_id
+        tests: [not_null]
+      - name: product_id
+        tests:
+          - relationships:
+              to: ref('dim_products')
+              field: product_id
+      - name: seller_id
+        tests:
+          - relationships:
+              to: ref('dim_sellers')
+              field: seller_id
+
+  - name: dim_products
+    description: One row per product with translated category and physical attributes.
+    columns:
+      - name: product_id
+        tests: [not_null, unique]
+
+  - name: dim_customers
+    description: Customer records keyed by customer_id, with a stable customer_unique_id for repeat-customer analysis.
+    columns:
+      - name: customer_id
+        tests: [not_null, unique]
+
+  - name: dim_sellers
+    description: One row per seller.
+    columns:
+      - name: seller_id
+        tests: [not_null, unique]
