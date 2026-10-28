@@ -4,5 +4,6 @@
 select order_id, order_status, order_total_value, payment_value,
        payment_value - order_total_value as payment_gap
 from {{ ref('fct_orders') }}
-where payment_value is not null
+where has_items
+  and payment_value is not null
   and abs(payment_value - order_total_value) > 1
