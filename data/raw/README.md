@@ -1,6 +1,6 @@
 # Raw data setup
 
-Place the nine CSV files from the [Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) in this folder, or pass another folder to `scripts/run_pipeline.py --raw-dir`.
+Place the nine CSV files from the [Olist Brazilian E-Commerce Public Dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce) in this folder. To use another folder, run `dbt build --vars "{raw_dir: path/to/folder}"`.
 
 Expected files:
 
