@@ -1,16 +1,12 @@
 RAW_DIR ?= data/raw
-DB_PATH ?= data/warehouse/olist.sqlite
 
-.PHONY: pipeline preview test dashboard
+.PHONY: build test-fixtures fixtures
 
-pipeline:
-	python scripts/run_pipeline.py --raw-dir $(RAW_DIR) --db-path $(DB_PATH)
+build:
+	dbt build
 
-preview:
-	python scripts/generate_dashboard_preview.py --db-path $(DB_PATH)
+fixtures:
+	python scripts/make_fixtures.py
 
-test:
-	python -m unittest discover -s tests -v
-
-dashboard:
-	streamlit run app/dashboard.py
+test-fixtures:
+	dbt build --vars '{raw_dir: tests/fixtures}'

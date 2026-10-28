@@ -1,140 +1,92 @@
-# Olist Analytics Platform
+# Olist analytics in dbt
 
-![Quality checks](https://github.com/iryna-bazaka/olist-analytics-platform/actions/workflows/ci.yml/badge.svg)
+A dbt project on the public [Olist Brazilian e-commerce dataset](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce)
+(99,441 orders, 2016–2018). It turns nine raw CSV files into tested facts, dimensions and a small semantic layer,
+and runs locally on DuckDB with no cloud account.
 
-An end-to-end, SQL-first analytics platform built on the public Olist Brazilian e-commerce dataset.
-
-This project is designed as a portfolio-quality proof of my work. It demonstrates how I approach an ambiguous data problem: establish clear grains, build reusable governed models, define a semantic contract for metrics, test the trust layer, and make the result easy for another person to run and understand.
-
-## Some comments 
-
-The repository reflects the work I have done in enterprise data environments:
-
-- reusable staging and dimensional models rather than one-off analysis;
-- order-, item-, customer-, product-, seller-, and geography-level grains;
-- data-quality checks for uniqueness, relationships, completeness, accepted values, and financial reconciliation;
-- a semantic metric catalog with explicit definitions and owners of meaning;
-- an interactive dashboard for business and technical audiences;
-- documentation that turns implementation choices into teachable examples.
-
-The production-style modeling layer is dbt, with Databricks/Delta as the intended lakehouse target and Power BI as the consumption layer. 
-
-## Architecture
-
-```mermaid
-flowchart LR
-    A[Olist CSV files] --> B[Databricks bronze Delta]
-    B --> C[dbt staging models]
-    C --> D[dbt gold facts and dimensions]
-    D --> E[Semantic metric contract]
-    E --> F[Power BI model and report]
-    D --> G[dbt tests and quality report]
-    G --> H[CI quality gate]
-```
-
-## Repository map
-
-```text
-app/dashboard.py                 Local metric preview dashboard
-data/raw/README.md               Dataset setup and attribution
-dbt_project.yml                  Production-style dbt project config
-databricks/olist_medallion.sql   Databricks bronze/silver/gold extension
-docs/architecture.md             Data flow and design decisions
-docs/semantic-model.md           Grains, dimensions, and metrics
-docs/portfolio-story.md          Interview and README talking points
-models/staging/                  Source-aligned cleaning views
-models/marts/                    Dimensional facts and dimensions
-models/semantic/                 Metric-ready semantic views
-powerbi/measures.dax              Power BI measure definitions
-powerbi/model-definition.md       Power BI relationships and UX notes
-scripts/run_pipeline.py          Build the local warehouse
-scripts/generate_dashboard_preview.py  Create a static HTML preview
-src/olist_analytics/             Pipeline, validation, metrics, and reporting code
-tests/                            Standard-library tests for model logic
-```
-
-## Quick start
-
-The repository does not commit the Kaggle CSVs. Download them from the source listed in [`data/raw/README.md`](data/raw/README.md).
+## Run it
 
 ```bash
-cd olist-analytics-platform
-python -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-
-# Local preview: point the pipeline at the folder containing the nine Olist CSV files.
-python scripts/run_pipeline.py --raw-dir /path/to/olist_csvs
-
-# Generate a self-contained HTML dashboard preview.
-python scripts/generate_dashboard_preview.py
-
-# Optional: run the interactive app.
-streamlit run app/dashboard.py
-
-# Run tests that do not require the full dataset.
-python -m unittest discover -s tests -v
+export DBT_PROFILES_DIR=.
+# download the Kaggle dataset and unzip the CSVs into data/raw/
+dbt build
 ```
 
-The default warehouse path is `data/warehouse/olist.sqlite`. Override it with `OLIST_DB_PATH`.
+Expected result: `PASS=41 WARN=2 ERROR=0`. The two warnings are real data issues, explained below.
 
-## Dashboard
+## What's inside
 
-The dashboard is organized around four questions:
+| Layer | Models | Materialized as |
+|---|---|---|
+| Staging (`models/staging`) | 9 models, one per source file: types, timestamps, renaming | views |
+| Marts (`models/marts`) | `fct_orders`, `fct_order_items`, `dim_customers`, `dim_products`, `dim_sellers`, `dim_geography` | tables |
+| Semantic (`models/semantic`) | 2 semantic models, 12 metrics, time spine | views |
 
-1. How is commerce performance changing over time?
-2. Which categories and states contribute to merchandise revenue?
-3. Where does delivery performance create customer risk?
-4. How are reviews and payment behavior distributed?
+Two facts on purpose: `fct_orders` is one row per order (payments, delivery, reviews),
+`fct_order_items` is one row per item (category, seller, price). Keeping them apart stops
+order-level numbers from being counted once per item.
 
-The app uses the semantic views instead of rebuilding metric logic in chart code. 
+Metrics are defined once in `semantic_models.yml`: merchandise revenue, orders, customers,
+average order value, on-time delivery rate, average review score and item revenue by category.
+CI checks they parse; I haven't queried them through MetricFlow yet.
 
-## Semantic layer
+## How it's tested
 
-The metric catalog lives in [`models/semantic/metrics.yml`](models/semantic/metrics.yml). Core measures include:
+25 data tests run on every `dbt build`:
 
-- `merchandise_revenue`: sum of item prices, excluding freight;
-- `freight_revenue`: sum of freight values;
-- `orders`: distinct order count;
-- `customers`: distinct customer count at `customer_unique_id` grain;
-- `average_order_value`: merchandise revenue divided by orders;
-- `on_time_delivery_rate`: delivered orders delivered on or before the estimated delivery date;
-- `average_review_score`: average review score for orders with a review.
+- **Keys and grain:** unique and not-null keys, one row per order item, relationships between facts and dimensions.
+- **Accepted values:** order status, review score 1–5.
+- **Reconciliation:** item revenue in `fct_order_items` adds up to `fct_orders`.
+- **Data quality warnings** (warn, not fail): payments that don't match items + freight, and paid orders with no items.
 
-The project separates order-grain measures from item-grain measures to prevent the common double-counting error where order-level revenue or review values are repeated once per item.
+CI (`.github/workflows/ci.yml`) runs `dbt parse` and `dbt build` on small fixture files in `tests/fixtures/`,
+which include the edge cases on purpose: a canceled order with a payment and no items, and an order paid in
+10 installments with a voucher. Regenerate them with `python scripts/make_fixtures.py`.
 
-## Data quality
+## What I found in the data
 
-The pipeline writes a machine-readable report to `reports/quality_report.json`. Checks include:
+- **772 orders were paid but have no items**, most of them `unavailable` or `canceled`. Average order value
+  therefore divides by orders with items only.
+- **249 orders don't match items + freight.** The gap rate jumps for 11–12 installments (~12% vs ~0.4% for 2–10),
+  which fits installment interest, but some gaps go the other way and can't be explained that way.
+- My first test reported these as one number (1,021). Splitting it by cause made both warnings actionable.
 
-- unique primary keys for orders, order items, products, customers, sellers, and reviews;
-- relationships from order items to orders/products/sellers;
-- accepted order statuses and review scores;
-- non-negative price and freight values;
-- timestamp ordering for approval, carrier hand-off, delivery, and estimated delivery, with source anomalies surfaced as warnings;
-- reconciliation of item-level merchandise revenue to the order-level fact.
+Details and open questions: [docs/data-findings.md](docs/data-findings.md).
 
-## dbt, Databricks, and Power BI path
+## Limitations
 
-The dbt project is the production-style source of truth for the transformations:
+- Static historical data, so no incremental models or source freshness checks.
+- No refund or interest data in Olist; two findings above stay hypotheses.
+- Runs on DuckDB only. The SQL uses dbt cross-database macros where dialects differ.
 
-1. land the Olist files in a Databricks volume or cloud object storage;
-2. create bronze Delta tables with ingestion metadata;
-3. run the dbt staging, mart, and semantic models against Databricks SQL;
-4. expose the gold star schema and semantic measures to Power BI;
-5. add Delta expectations, Unity Catalog governance, row-level security, and refresh monitoring.
+## Why I built this
 
-## Source and attribution
+I've spent 8+ years building data platforms for enterprise clients, most recently as a team lead.
+Much of that work was semantic modelling: running definition sessions with the business on what an "order",
+a "customer" or "revenue" means, designing the architecture and semantic models (I draw them in draw.io
+or Excalidraw), and implementing them on Databricks and Power BI.
 
-Source: [Brazilian E-Commerce Public Dataset by Olist on Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). The dataset contains approximately 100,000 orders with customer, product, seller, payment, review, and geolocation information covering 2016–2018.
+My way of working has always been incremental. I build on a small dataset first and let the business test it.
+Then I add more history and test again. Every red flag or warning I find, I confirm with the business owner
+the same day instead of guessing. Most of the trust in a number comes from that loop, not from the SQL.
 
+That experience also taught me where things break: definitions, grain, and the edge cases nobody mentions
+until two reports show different numbers. In client work, that reasoning lives in workshops, diagrams and
+private repositories. Here I wanted it to be visible.
 
-## Portfolio demo
+I chose dbt because it turns those decisions into code. Each model has one grain, each metric is defined once,
+and every assumption I make about the data is a test that runs on every build. I hadn't used dbt in production
+before, so this project is also where I learned it properly, on real, messy data rather than a tutorial.
 
-Start with the dashboard, then open the semantic model and one quality check. In five minutes, it explains:
+A few choices here reflect how I work on client projects:
 
-1. the business question;
-2. the grain of the dataset used to answer it;
-3. the metric definition;
-4. the data-quality rule that protects it;
-5. how the same model could move to another data cloud platform.
+- **Two fact tables at two grains.** Mixing order-level and item-level measures in one table is a classic way
+  to double-count revenue.
+- **Warnings, not silent filters.** When 772 paid orders have no items, I'd rather surface it and ask the
+  business than quietly drop them.
+- **A hypothesis is labelled as one.** Installment interest fits the payment gaps, but Olist can't prove it,
+  so I don't claim it.
+- **Small data first, then full history.** CI builds on small fixture files with the edge cases built in;
+  the same tests then run on all 99,441 orders.

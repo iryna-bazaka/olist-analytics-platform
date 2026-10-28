@@ -1,0 +1,185 @@
+version: 2
+
+models:
+  - name: metricflow_time_spine
+    description: Daily calendar used by the semantic layer.
+    time_spine:
+      standard_granularity_column: date_day
+    columns:
+      - name: date_day
+        granularity: day
+
+semantic_models:
+  - name: orders
+    description: Order grain. Use for revenue, order counts, AOV, delivery and reviews.
+    model: ref('semantic_order_metrics')
+    defaults:
+      agg_time_dimension: purchase_date
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_unique_id
+    dimensions:
+      - name: purchase_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: order_status
+        type: categorical
+      - name: customer_state
+        type: categorical
+      - name: has_items
+        type: categorical
+    measures:
+      - name: merchandise_revenue
+        description: Sum of item prices, excluding freight.
+        agg: sum
+      - name: freight_revenue
+        description: Sum of freight values.
+        agg: sum
+      - name: order_count
+        description: Distinct orders.
+        agg: count_distinct
+        expr: order_id
+      - name: orders_with_items
+        description: Distinct orders that have at least one item.
+        agg: count_distinct
+        expr: "case when has_items then order_id end"
+      - name: customer_count
+        description: Distinct people (customer_unique_id), not order-level customer_id.
+        agg: count_distinct
+        expr: customer_unique_id
+      - name: on_time_orders
+        description: Delivered orders that arrived on or before the estimated date.
+        agg: sum
+        expr: on_time_delivery_flag
+      - name: delivered_orders_with_dates
+        description: Delivered orders with both actual and estimated delivery dates.
+        agg: count
+        expr: on_time_delivery_flag
+      - name: review_score_sum
+        agg: sum
+        expr: average_review_score
+      - name: reviewed_orders
+        agg: count
+        expr: average_review_score
+
+  - name: order_items
+    description: Item grain. Use for category and seller breakdowns.
+    model: ref('semantic_product_metrics')
+    defaults:
+      agg_time_dimension: purchase_date
+    entities:
+      - name: order_item
+        type: primary
+        expr: "order_id || '-' || cast(order_item_id as varchar)"
+      - name: order
+        type: foreign
+        expr: order_id
+    dimensions:
+      - name: purchase_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: product_category_name_english
+        type: categorical
+      - name: seller_state
+        type: categorical
+    measures:
+      - name: item_revenue
+        description: Merchandise revenue at item grain.
+        agg: sum
+        expr: item_price
+      - name: item_count
+        agg: count
+        expr: order_item_id
+
+metrics:
+  - name: merchandise_revenue
+    label: Merchandise revenue (BRL)
+    description: Sum of item prices, excluding freight.
+    type: simple
+    type_params:
+      measure: merchandise_revenue
+
+  - name: orders
+    label: Orders
+    type: simple
+    type_params:
+      measure: order_count
+
+  - name: customers
+    label: Customers
+    description: Distinct people, counted by customer_unique_id.
+    type: simple
+    type_params:
+      measure: customer_count
+
+  - name: average_order_value
+    label: Average order value (BRL)
+    description: Merchandise revenue divided by orders that have items. Orders without items are excluded from the denominator.
+    type: ratio
+    type_params:
+      numerator: merchandise_revenue
+      denominator:
+        name: orders_with_items_metric
+
+  - name: orders_with_items_metric
+    label: Orders with items
+    type: simple
+    type_params:
+      measure: orders_with_items
+
+  - name: on_time_delivery_rate
+    label: On-time delivery rate
+    description: Share of delivered orders that arrived on or before the estimated date.
+    type: ratio
+    type_params:
+      numerator:
+        name: on_time_orders_metric
+      denominator:
+        name: delivered_orders_metric
+
+  - name: on_time_orders_metric
+    label: On-time orders
+    type: simple
+    type_params:
+      measure: on_time_orders
+
+  - name: delivered_orders_metric
+    label: Delivered orders with dates
+    type: simple
+    type_params:
+      measure: delivered_orders_with_dates
+
+  - name: average_review_score
+    label: Average review score
+    description: Mean of order-level review scores, for orders with a review.
+    type: ratio
+    type_params:
+      numerator:
+        name: review_score_sum_metric
+      denominator:
+        name: reviewed_orders_metric
+
+  - name: review_score_sum_metric
+    label: Review score sum
+    type: simple
+    type_params:
+      measure: review_score_sum
+
+  - name: reviewed_orders_metric
+    label: Reviewed orders
+    type: simple
+    type_params:
+      measure: reviewed_orders
+
+  - name: item_revenue_by_category
+    label: Item revenue (BRL)
+    description: Merchandise revenue at item grain; use with category or seller state.
+    type: simple
+    type_params:
+      measure: item_revenue

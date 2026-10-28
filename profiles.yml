@@ -1,0 +1,7 @@
+olist_analytics:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: data/warehouse/olist.duckdb
+      threads: 4
