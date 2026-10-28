@@ -1,17 +1,21 @@
-name: quality
-
+name: dbt build
 on:
   push:
   pull_request:
-
 jobs:
-  python-tests:
+  dbt:
     runs-on: ubuntu-latest
+    env:
+      DBT_PROFILES_DIR: .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - run: python -m pip install --upgrade pip
-      - run: pip install pandas PyYAML
-      - run: python -m unittest discover -s tests -v
+          python-version: "3.12"
+      - run: pip install "dbt-duckdb>=1.9,<2.0"
+      - run: mkdir -p data/warehouse
+      - name: Check the project and semantic layer parse
+        run: dbt parse
+      - name: Build all models and run all tests on the fixture data
+        run: |
+          dbt build --vars '{raw_dir: tests/fixtures}'
