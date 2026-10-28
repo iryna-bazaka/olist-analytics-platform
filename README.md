@@ -4,9 +4,9 @@
 
 An end-to-end, SQL-first analytics platform built on the public Olist Brazilian e-commerce dataset.
 
-This project is designed as a portfolio-quality proof of work for data platform, analytics engineering, and developer advocacy roles. It demonstrates how I approach an ambiguous data problem: establish clear grains, build reusable governed models, define a semantic contract for metrics, test the trust layer, and make the result easy for another person to run and understand.
+This project is designed as a portfolio-quality proof of my work. It demonstrates how I approach an ambiguous data problem: establish clear grains, build reusable governed models, define a semantic contract for metrics, test the trust layer, and make the result easy for another person to run and understand.
 
-## Why this project is relevant
+## Some comments 
 
 The repository reflects the work I have done in enterprise data environments:
 
@@ -17,7 +17,7 @@ The repository reflects the work I have done in enterprise data environments:
 - an interactive dashboard for business and technical audiences;
 - documentation that turns implementation choices into teachable examples.
 
-The production-style modeling layer is dbt, with Databricks/Delta as the intended lakehouse target and Power BI as the consumption layer. A small SQLite preview adapter is included so the project is easy to validate without cloud credentials.
+The production-style modeling layer is dbt, with Databricks/Delta as the intended lakehouse target and Power BI as the consumption layer. 
 
 ## Architecture
 
@@ -55,7 +55,7 @@ tests/                            Standard-library tests for model logic
 
 ## Quick start
 
-The repository does not commit the Kaggle CSVs. Download them from the source listed in [`data/raw/README.md`](data/raw/README.md), or use the files supplied for this project.
+The repository does not commit the Kaggle CSVs. Download them from the source listed in [`data/raw/README.md`](data/raw/README.md).
 
 ```bash
 cd olist-analytics-platform
@@ -87,7 +87,7 @@ The dashboard is organized around four questions:
 3. Where does delivery performance create customer risk?
 4. How are reviews and payment behavior distributed?
 
-The app uses the semantic views instead of rebuilding metric logic in chart code. That separation is deliberate: a metric should have one definition even when it appears in multiple charts, notebooks, or enablement examples.
+The app uses the semantic views instead of rebuilding metric logic in chart code. 
 
 ## Semantic layer
 
@@ -116,7 +116,7 @@ The pipeline writes a machine-readable report to `reports/quality_report.json`. 
 
 ## dbt, Databricks, and Power BI path
 
-The dbt project is the production-style source of truth for the transformations. A Databricks deployment would preserve the same contracts while replacing only the local source and target configuration:
+The dbt project is the production-style source of truth for the transformations:
 
 1. land the Olist files in a Databricks volume or cloud object storage;
 2. create bronze Delta tables with ingestion metadata;
@@ -124,20 +124,17 @@ The dbt project is the production-style source of truth for the transformations.
 4. expose the gold star schema and semantic measures to Power BI;
 5. add Delta expectations, Unity Catalog governance, row-level security, and refresh monitoring.
 
-The same semantic contracts can also be adapted to Snowflake if the target role requires it. The repository demonstrates the transferable modeling and enablement work without pretending that a local Kaggle project is already a production cloud deployment.
-
 ## Source and attribution
 
 Source: [Brazilian E-Commerce Public Dataset by Olist on Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce). The dataset contains approximately 100,000 orders with customer, product, seller, payment, review, and geolocation information covering 2016–2018.
 
-The code in this repository is intended as portfolio work. Review the dataset's current Kaggle terms before redistributing the raw files or publishing derived assets.
 
-## Suggested portfolio demo
+## Portfolio demo
 
-Start with the dashboard, then open the semantic model and one quality check. In five minutes, explain:
+Start with the dashboard, then open the semantic model and one quality check. In five minutes, it explains:
 
 1. the business question;
 2. the grain of the dataset used to answer it;
 3. the metric definition;
 4. the data-quality rule that protects it;
-5. how the same model could move to Snowflake.
+5. how the same model could move to another data cloud platform.
