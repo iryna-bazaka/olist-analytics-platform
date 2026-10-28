@@ -2,8 +2,11 @@ version: 2
 
 sources:
   - name: olist_raw
-    description: Raw Olist CSV extracts landed in a Databricks bronze schema.
-    schema: bronze_olist
+    description: >
+      Raw Olist CSV files. Locally and in CI, dbt-duckdb reads them straight from disk;
+      the folder is set with the raw_dir variable (default data/raw).
+    meta:
+      external_location: "{{ var('raw_dir', 'data/raw') }}/olist_{name}_dataset.csv"
     tables:
       - name: orders
         description: One row per Olist order.
@@ -23,3 +26,5 @@ sources:
         description: Brazilian ZIP-prefix latitude and longitude observations.
       - name: category_translation
         description: Portuguese-to-English product category mapping.
+        meta:
+          external_location: "{{ var('raw_dir', 'data/raw') }}/product_category_name_translation.csv"
