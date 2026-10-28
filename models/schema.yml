@@ -2,59 +2,83 @@ version: 2
 
 models:
   - name: fct_orders
-    description: One row per order, with order-level commercial, payment, review, and fulfillment metrics.
+    description: One row per order, with order-level commercial, payment, review and fulfilment metrics.
     columns:
       - name: order_id
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
       - name: customer_id
-        tests:
+        data_tests:
           - not_null
           - relationships:
-              to: ref('dim_customers')
-              field: customer_id
+              arguments:
+                to: ref('dim_customers')
+                field: customer_id
       - name: order_status
-        tests:
+        data_tests:
           - accepted_values:
-              values: ['delivered', 'invoiced', 'shipped', 'processing', 'unavailable', 'canceled', 'created', 'approved']
+              arguments:
+                values: ['delivered', 'invoiced', 'shipped', 'processing', 'unavailable', 'canceled', 'created', 'approved']
       - name: merchandise_revenue
-        tests: [not_null]
+        description: Sum of item prices. 0 for orders without items (see has_items).
+        data_tests: [not_null]
+      - name: has_items
+        description: False for orders with no rows in order_items (mostly canceled or unavailable).
+        data_tests: [not_null]
 
   - name: fct_order_items
-    description: One row per order item, joined to order, product, and seller dimensions.
+    description: One row per order item (grain = order_id + order_item_id).
     columns:
       - name: order_id
-        tests:
+        data_tests:
           - not_null
           - relationships:
-              to: ref('fct_orders')
-              field: order_id
+              arguments:
+                to: ref('fct_orders')
+                field: order_id
       - name: order_item_id
-        tests: [not_null]
+        data_tests: [not_null]
       - name: product_id
-        tests:
+        data_tests:
           - relationships:
-              to: ref('dim_products')
-              field: product_id
+              arguments:
+                to: ref('dim_products')
+                field: product_id
       - name: seller_id
-        tests:
+        data_tests:
           - relationships:
-              to: ref('dim_sellers')
-              field: seller_id
+              arguments:
+                to: ref('dim_sellers')
+                field: seller_id
 
   - name: dim_products
     description: One row per product with translated category and physical attributes.
     columns:
       - name: product_id
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
 
   - name: dim_customers
-    description: Customer records keyed by customer_id, with a stable customer_unique_id for repeat-customer analysis.
+    description: Customer records keyed by customer_id; customer_unique_id identifies the person across orders.
     columns:
       - name: customer_id
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
 
   - name: dim_sellers
     description: One row per seller.
     columns:
       - name: seller_id
-        tests: [not_null, unique]
+        data_tests: [not_null, unique]
+
+  - name: dim_geography
+    description: One row per ZIP-code prefix, with averaged coordinates.
+    columns:
+      - name: geolocation_zip_code_prefix
+        data_tests: [not_null, unique]
+
+  - name: stg_order_reviews
+    columns:
+      - name: review_score
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false

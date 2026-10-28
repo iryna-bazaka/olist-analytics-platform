@@ -11,6 +11,7 @@ select
     freight_revenue,
     order_total_value,
     item_count,
+    has_items,
     average_review_score,
     delivery_days,
     delivery_delay_days,
