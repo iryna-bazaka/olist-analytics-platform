@@ -15,9 +15,16 @@ payment_metrics as (
     select
         order_id,
         sum(payment_value) as payment_value,
-        max(payment_installments) as max_payment_installments,
-        concat_ws(', ', sort_array(collect_set(payment_type))) as payment_types
+        max(payment_installments) as max_payment_installments
     from {{ ref('stg_order_payments') }}
+    group by order_id
+),
+payment_type_list as (
+    -- one row per order and payment type first, so the list has no duplicates
+    select
+        order_id,
+        {{ dbt.listagg('payment_type', "', '", 'order by payment_type') }} as payment_types
+    from (select distinct order_id, payment_type from {{ ref('stg_order_payments') }}) as distinct_types
     group by order_id
 ),
 review_metrics as (
@@ -50,18 +57,18 @@ select
     i.distinct_seller_count,
     p.payment_value,
     p.max_payment_installments,
-    p.payment_types,
+    pt.payment_types,
     r.average_review_score,
     r.review_count,
     case
         when o.order_delivered_customer_date is not null
          and o.order_purchase_timestamp is not null
-        then datediff(o.order_delivered_customer_date, o.order_purchase_timestamp)
+        then {{ dbt.datediff('o.order_purchase_timestamp', 'o.order_delivered_customer_date', 'day') }}
     end as delivery_days,
     case
         when o.order_delivered_customer_date is not null
          and o.order_estimated_delivery_date is not null
-        then datediff(o.order_delivered_customer_date, o.order_estimated_delivery_date)
+        then {{ dbt.datediff('o.order_estimated_delivery_date', 'o.order_delivered_customer_date', 'day') }}
     end as delivery_delay_days,
     case
         when o.order_status = 'delivered'
@@ -73,4 +80,5 @@ from {{ ref('stg_orders') }} o
 left join {{ ref('dim_customers') }} c on o.customer_id = c.customer_id
 left join item_metrics i on o.order_id = i.order_id
 left join payment_metrics p on o.order_id = p.order_id
+left join payment_type_list pt on o.order_id = pt.order_id
 left join review_metrics r on o.order_id = r.order_id
