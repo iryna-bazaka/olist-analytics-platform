@@ -63,7 +63,7 @@ Details and open questions: [docs/data-findings.md](docs/data-findings.md).
 
 ## Why I built this
 
-I've spent 9+ years building data platforms for enterprise clients, most recently as a team lead.
+I've spent 8+ years building data platforms for enterprise clients, most recently as a team lead.
 Much of that work was semantic modelling: running definition sessions with the business on what an "order",
 a "customer" or "revenue" means, designing the architecture and semantic models (I draw them in draw.io
 or Excalidraw), and implementing them on Databricks and Power BI.
