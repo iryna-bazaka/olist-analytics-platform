@@ -63,5 +63,30 @@ Details and open questions: [docs/data-findings.md](docs/data-findings.md).
 
 ## Why I built this
 
-I've designed semantic models for enterprise clients and implemented them on Databricks and Power BI.
-This is the same approach in dbt with the tests and the messy parts visible.
+I've spent 9+ years building data platforms for enterprise clients, most recently as a team lead.
+Much of that work was semantic modelling: running definition sessions with the business on what an "order",
+a "customer" or "revenue" means, designing the architecture and semantic models (I draw them in draw.io
+or Excalidraw), and implementing them on Databricks and Power BI.
+
+My way of working has always been incremental. I build on a small dataset first and let the business test it.
+Then I add more history and test again. Every red flag or warning I find, I confirm with the business owner
+the same day instead of guessing. Most of the trust in a number comes from that loop, not from the SQL.
+
+That experience also taught me where things break: definitions, grain, and the edge cases nobody mentions
+until two reports show different numbers. In client work, that reasoning lives in workshops, diagrams and
+private repositories. Here I wanted it to be visible.
+
+I chose dbt because it turns those decisions into code. Each model has one grain, each metric is defined once,
+and every assumption I make about the data is a test that runs on every build. I hadn't used dbt in production
+before, so this project is also where I learned it properly, on real, messy data rather than a tutorial.
+
+A few choices here reflect how I work on client projects:
+
+- **Two fact tables at two grains.** Mixing order-level and item-level measures in one table is a classic way
+  to double-count revenue.
+- **Warnings, not silent filters.** When 772 paid orders have no items, I'd rather surface it and ask the
+  business than quietly drop them.
+- **A hypothesis is labelled as one.** Installment interest fits the payment gaps, but Olist can't prove it,
+  so I don't claim it.
+- **Small data first, then full history.** CI builds on small fixture files with the edge cases built in;
+  the same tests then run on all 99,441 orders.
